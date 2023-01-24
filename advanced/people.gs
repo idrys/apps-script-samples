@@ -108,10 +108,12 @@ function getContactByEmail(email) {
   try {
     // Gets the person with that email address by iterating over all contacts.
     const people = People.People.Connections.list('people/me', {
+      pageSize: 110,
       personFields: 'names,emailAddresses'
     });
     const contact = people['connections'].find((connection) => {
-      return connection['emailAddresses'].some((emailAddress) => emailAddress['value'] === email);
+      if (connection['emailAddresses'] !== undefined)
+        return connection['emailAddresses'].some((emailAddress) => emailAddress['value'] === email);
     });
     // Prints the contact.
     console.log('Contact: %s', JSON.stringify(contact, null, 2));
