@@ -189,3 +189,21 @@ function getPhone() {
 }
 
 // [END people_get_single_phone_number]
+
+// [START people_update_contact_photo]
+/**
+ * Updating the photo of the given "id" of the contact
+ * @see https://developers.google.com/people/api/rest/v1/people/updateContactPhoto
+ */
+function updatePhoto(id){
+  var url = 'https://workwisewellness.co.uk/wp-content/uploads/2016/02/HiRes.jpg'
+  var blob = UrlFetchApp.fetch(url).getBlob();
+  var data = Utilities.base64EncodeWebSafe(blob.getBytes());
+  var resourceName = 'people/'+id;
+  var reqBody = {
+    "photoBytes": data,
+    "personFields": "photos"
+  }
+  var res = People.People.updateContactPhoto(reqBody, resourceName)
+}
+// [END people_update_contact_photo]
