@@ -196,14 +196,54 @@ function getPhone() {
  * @see https://developers.google.com/people/api/rest/v1/people/updateContactPhoto
  */
 function updatePhoto(id){
-  var url = 'https://workwisewellness.co.uk/wp-content/uploads/2016/02/HiRes.jpg'
-  var blob = UrlFetchApp.fetch(url).getBlob();
-  var data = Utilities.base64EncodeWebSafe(blob.getBytes());
-  var resourceName = 'people/'+id;
-  var reqBody = {
-    "photoBytes": data,
-    "personFields": "photos"
+  try { 
+    var url = 'https://workwisewellness.co.uk/wp-content/uploads/2016/02/HiRes.jpg'
+    var blob = UrlFetchApp.fetch(url).getBlob();
+    var data = Utilities.base64EncodeWebSafe(blob.getBytes());
+    var resourceName = 'people/'+id;
+    var reqBody = {
+      "photoBytes": data,
+      "personFields": "photos"
+    }
+    var res = People.People.updateContactPhoto(reqBody, resourceName)
+  } catch (err) {
+    // TODO (developers) - Handle exception
+    console.log('Failed to get the connection with an error %s', err.message);
   }
-  var res = People.People.updateContactPhoto(reqBody, resourceName)
 }
 // [END people_update_contact_photo]
+
+// [START getContact]
+/************************************************************************************************************/
+// Find phone Number () and return "id" of contact
+// var id = getContact("+48507493304") without the second parameter, no token !
+//************************************************************************************************************/
+function getContact(phone, token){
+  try { 
+    // Get the list of connections/contacts of user's profile
+    // by default it only fetches the first 100 items
+    const people = People.People.Connections.list('people/me', {
+      pageToken: token, // in the first call the token is empty
+      personFields: 'names,phoneNumbers' 
+    })
+    // We search the received tables
+    const contact = people['connections'].find((connection) => {
+      if (connection['phoneNumbers'] !== undefined)
+        return connection['phoneNumbers'].some((phoneNumber) => phoneNumber['canonicalForm'] === phone);  
+    });
+    // If the result is different from undefined
+    if ( contact !== undefined ){
+      // The phone number you were looking for was found in the table
+      // Converting from Json to arrays
+      var data = JSON.parse(contact); // get all info about conntact 'names,phoneNumbers'
+      // We are only interested in the "id" of the contact
+      return data.names[0].metadata.source.id;
+    }
+    else // If we didn't find anything we keep looking, moving to nextPageToken
+      return getContact(phone, people.nextPageToken);
+  } catch (err) {
+    // TODO (developers) - Handle exception
+    console.log('Failed to get the connection with an error %s', err.message);
+  }  
+}
+// [END getContact]
